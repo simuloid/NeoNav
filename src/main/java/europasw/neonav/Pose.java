@@ -34,6 +34,11 @@ public class Pose {
        this.heading = other.heading;
     }
 
+    @Override
+    public String toString() {
+       return String.format("<%.2f, %.2f, %.1f>", x, y, Math.toDegrees(heading));
+    }
+    
     public void forward(double meters) {
        x = x + meters * Math.cos(this.heading);
        y = y + meters * Math.sin(this.heading);

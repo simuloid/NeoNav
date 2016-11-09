@@ -9,6 +9,7 @@ import java.awt.Shape;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Represents the simulated world.  Contains a list of simulated object that can
@@ -18,6 +19,8 @@ be detected
 public class World {
     int width;
     int height;
+    static Random dice = new Random();
+    
     Collection<Shape> objects = new ArrayList<>();
     public World() {
         this(100, 100);
@@ -28,6 +31,9 @@ public class World {
         this.height = height;
     }
     
+    public Pose randomPose() {
+       return new Pose(dice.nextDouble()*width, dice.nextDouble()*height,2*dice.nextDouble()*Math.PI - Math.PI);
+    }
     public static double angleDifference(double from, double to) {
         return Math.atan2(Math.sin(to-from), Math.cos(to-from));
     }
@@ -37,25 +43,36 @@ public class World {
     /**
      * Returns the range in meters to the nearest object along the
      * given angles from the given Pose.
-     * @param Pose The source pose from which measurements will be made
+     * @param p The source pose from which measurements will be made
      * @param angles The list of angles to follow relative to the pose.
      * @return A List of ranges corresponding to the given angles.
      */
     public List<Double> ranges(Pose p, Double... angles) {
         List<Double>  values = new ArrayList<>(angles.length);
-        System.out.format("From %.1f to %.1f is %.1f degrees\n", 
-                Math.toDegrees(2*p.heading), Math.toDegrees(0), 
-                Math.toDegrees(angleDifference(2*p.heading, 0)));
         for (double a: angles) {
             double angle = angleSum(a, p.heading);
             double range = rangeToObject(p.x, p.y, angle);
+            values.add(range);
         }
         return values;
     }
 
     private double rangeToObject(double x, double y, double angle) {
-        System.out.format("Returning range to nearest from %.2f, %.2f heading %.1f\n", x, y, Math.toDegrees(angle));
-        return 0;
+//        System.out.format("Returning range to nearest from %.2f, %.2f heading %.1f\n", x, y, Math.toDegrees(angle));
+      double r = 0;
+      Pose p;
+      do {
+         p = new Pose(x, y, angle);
+         p.forward(r);
+         for (Shape s: objects) {
+            if (s.contains(p.x, p.y)) {
+               return r;
+            }
+         }
+         r += 0.01;
+      } while (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height);
+      
+      return r;
     }
     
     public void addObject(Shape s) {
