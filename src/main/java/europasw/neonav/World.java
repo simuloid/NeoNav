@@ -5,7 +5,9 @@
  */
 package europasw.neonav;
 
+import java.awt.Shape;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -16,7 +18,7 @@ be detected
 public class World {
     int width;
     int height;
-    
+    Collection<Shape> objects = new ArrayList<>();
     public World() {
         this(100, 100);
     }
@@ -26,17 +28,18 @@ public class World {
         this.height = height;
     }
     
-    public double angleDifference(double from, double to) {
+    public static double angleDifference(double from, double to) {
         return Math.atan2(Math.sin(to-from), Math.cos(to-from));
     }
-    public double angleSum(double a1, double a2) {
+    public static double angleSum(double a1, double a2) {
         return Math.atan2(Math.sin(a1+a2), Math.cos(a1+a2));
     }
     /**
-     *
-     * @param heading
-     * @param angles
-     * @return
+     * Returns the range in meters to the nearest object along the
+     * given angles from the given Pose.
+     * @param Pose The source pose from which measurements will be made
+     * @param angles The list of angles to follow relative to the pose.
+     * @return A List of ranges corresponding to the given angles.
      */
     public List<Double> ranges(Pose p, Double... angles) {
         List<Double>  values = new ArrayList<>(angles.length);
@@ -53,5 +56,9 @@ public class World {
     private double rangeToObject(double x, double y, double angle) {
         System.out.format("Returning range to nearest from %.2f, %.2f heading %.1f\n", x, y, Math.toDegrees(angle));
         return 0;
+    }
+    
+    public void addObject(Shape s) {
+       objects.add(s);
     }
 }
