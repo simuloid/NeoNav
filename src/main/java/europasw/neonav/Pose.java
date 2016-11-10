@@ -5,6 +5,9 @@
  */
 package europasw.neonav;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  *
  * @author Steve
@@ -34,6 +37,13 @@ public class Pose {
        this.heading = other.heading;
     }
 
+    public static List<Double> difference(Pose p1, Pose p2) {
+        Double[] diff = new Double[3];
+        diff[0] = p1.x - p2.x;
+        diff[1] = p1.y - p2.y;
+        diff[2] = World.angleDifference(p2.heading, p1.heading);
+        return Arrays.asList(diff);
+    }
     @Override
     public String toString() {
        return String.format("<%.2f, %.2f, %.1f>", x, y, Math.toDegrees(heading));
