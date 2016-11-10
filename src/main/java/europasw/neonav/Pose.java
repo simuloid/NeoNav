@@ -16,7 +16,25 @@ public class Pose {
     public double x;
     public double y;
     public double heading; // radians
-    
+    public double dx;
+    public double dy;
+    public double dHeading;
+
+    void update(double dt) {
+        forward(dt);
+   }
+   void updateToward(Pose target, double fraction) {
+        List<Double> diff = Pose.difference(target, this);
+        x += diff.get(0) * fraction;
+        y += diff.get(1) * fraction;
+        heading = World.angleSum(heading, diff.get(2) * fraction);       
+   }
+   void updateTrajectoryToward(Pose target, double fraction) {
+        List<Double> diff = Pose.difference(target, this);
+        dx = (1 - fraction) * dx + diff.get(0) * fraction;
+        dy = (1 - fraction) * dy + diff.get(1) * fraction;
+        dHeading = World.angleSum(dHeading, diff.get(2) * fraction);       
+   }
     public Pose() {
         this(0, 0, 0.0);
     }
@@ -35,8 +53,16 @@ public class Pose {
        this.x = other.x;
        this.y = other.y;
        this.heading = other.heading;
+       this.dx = other.dx;
+       this.dy = other.dy;
+       this.dHeading = other.dHeading;
     }
 
+    public double distance(Pose other) {
+        double dx = x - other.x;
+        double dy = y - other.y;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
     public static List<Double> difference(Pose p1, Pose p2) {
         Double[] diff = new Double[3];
         diff[0] = p1.x - p2.x;
@@ -47,6 +73,12 @@ public class Pose {
     @Override
     public String toString() {
        return String.format("<%.2f, %.2f, %.1f>", x, y, Math.toDegrees(heading));
+    }
+    
+    public void shake(double fraction) {
+        x += fraction + (Math.random() * 2 - 1);
+        y += fraction + (Math.random() * 2 - 1);
+        heading += fraction + (Math.random() * 2 - 1);
     }
     
     public void forward(double meters) {

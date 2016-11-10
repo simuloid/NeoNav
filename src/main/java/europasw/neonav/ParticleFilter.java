@@ -6,6 +6,7 @@
 package europasw.neonav;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -17,8 +18,8 @@ import java.util.TreeSet;
 public class ParticleFilter {
     final List<Pixie> particles;
     Pixie best;
-    private final int size;
-    private final World world;
+    final int size;
+    final World world;
     public ParticleFilter(int size, World world) {
         particles = new ArrayList<>(size);
         this.size = size;
@@ -30,19 +31,75 @@ public class ParticleFilter {
         }
     }
     
+    public void update(double dt) {
+        for (Pixie p: particles) {
+            p.pose.update(dt);
+        }
+    }
+    
+    public void shake(double dt) {
+        for (Pixie p: particles) {
+            p.pose.shake(dt);
+        }
+    }
+    
     public void move(double distance) {
         for (Pixie p: particles) {
             p.pose.forward(distance);
         }
     }
-    // Nudge everybody toward best
-    public void improve() {
-        final double fraction = 0.01;
+    
+    public void rotate(float degrees) {
         for (Pixie p: particles) {
-            List<Double> diff = Pose.difference(best.pose, p.pose);
-            p.pose.x += diff.get(0) * fraction;
-            p.pose.y += diff.get(1) * fraction;
-            p.pose.heading = World.angleSum(p.pose.heading, diff.get(2) * fraction);
+            p.pose.rotate(degrees);
+        }
+    }
+
+    public void rotate(double radians) {
+        for (Pixie p: particles) {
+            p.pose.rotate(radians);
+        }
+    }
+
+    public void cull(double replaceFraction) {
+        synchronized (particles) {
+            Collections.sort(particles, Pixie.compareScores);
+        }
+        int start = (int)(particles.size() * (1 - replaceFraction));
+        for (int i = start; i < particles.size(); ++i) {
+            Pixie p = particles.get(i);
+            if (p == best) {
+                throw new RuntimeException("Culling best: " + p);
+            }
+            p.pose = world.randomPose();
+        }
+    }
+
+    Pixie localBest(Pixie dude) {
+        Pixie best = null;
+        for (Pixie p: particles) {
+            if (dude.pose.distance(p.pose) < world.width*0.1) {
+                if (best == null || best.score < p.score) {
+                    best = p;
+                }
+            }
+        }
+        return best;
+    }
+    
+    public void improve() {
+        improve(0.01);
+    }
+
+    // Nudge everybody toward best
+    public void improve(double fraction) {
+        cull(0.1);
+        for (Pixie p: particles) {
+            p.pose.updateToward(best.pose, fraction*0.1);
+            Pixie b = localBest(p);
+            if (b != null) {
+                p.pose.updateToward(b.pose, fraction);
+            }
         }
     }
     public void scoreAgainst(List<Double> measurement) {
@@ -53,8 +110,12 @@ public class ParticleFilter {
             if (p.score < bestScore) {
                 bestScore = p.score;
                 best = p;
-                // System.out.println(p);
             }
         }
+        
+        synchronized (particles) {
+            Collections.sort(particles, Pixie.compareScores);
+        }
+        System.out.println(particles);
     }
 }

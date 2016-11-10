@@ -7,6 +7,7 @@
 package europasw.neonav;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -16,14 +17,22 @@ import java.util.Objects;
 public class Pixie {
    Pose pose;
    double score;
-   static Double[] sensorAngles = { Math.toRadians(60), 0.0, Math.toRadians(-60) };
+//   static Double[] sensorAngles = { Math.toRadians(60), 0.0, Math.toRadians(-60) };
+   static Double[] sensorAngles = { 0.0, Math.toRadians(180) };
    
+   static {
+       int n = 6;
+       sensorAngles = new Double[n];
+       double da = 360.0 / n;
+       for (int i = 0; i < n; ++i) {
+           sensorAngles[i] = i * da;
+       }
+   }
    @Override
    public String toString() {
       return pose.toString() + String.format(" score %.2f", score);
    }
 
-    
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -43,7 +52,7 @@ public class Pixie {
         return hash;
     }
 
-    static Comparator<Pixie> comparePixies = new Comparator<Pixie>() {
+    static Comparator<Pixie> compareScores = new Comparator<Pixie>() {
 
        @Override
        public int compare(Pixie t, Pixie t1) {

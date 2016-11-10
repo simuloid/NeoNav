@@ -32,7 +32,22 @@ public class World {
     }
     
     public Pose randomPose() {
-       return new Pose(dice.nextDouble()*width, dice.nextDouble()*height,2*dice.nextDouble()*Math.PI - Math.PI);
+        boolean good = false;
+        Pose p = null;
+        while (!good) {
+            p = new Pose(dice.nextDouble()*width, dice.nextDouble()*height,2*dice.nextDouble()*Math.PI - Math.PI);
+            good = true;
+            for (Shape s: objects) {
+                if (s.contains(p.x, p.y)) {
+                    good = false;
+                    break;
+                }
+            }
+        }
+//       p.dx = (dice.nextDouble()*2 - 1)*width*0.001;
+//       p.dy = (dice.nextDouble()*2 - 1)*height*0.001;
+//       p.dHeading = (dice.nextDouble()*2 - 1)*Math.PI*0.01;
+       return p;
     }
     public static double angleDifference(double from, double to) {
         return Math.atan2(Math.sin(to-from), Math.cos(to-from));
