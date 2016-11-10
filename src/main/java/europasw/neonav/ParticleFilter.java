@@ -61,17 +61,37 @@ public class ParticleFilter {
         }
     }
 
+    public Pixie weightedSample() {
+       double roll = Math.random();
+       for (Pixie p: particles) {
+          if (roll < p.score) {
+             return p;
+          }
+          roll -= p.score;
+       }
+       return null;
+    }
+    public List<Pixie> weightedSamples(int howMany) {
+       List<Pixie> rc = new ArrayList<>(howMany);
+       for (int i = 0; i < howMany; ++i) {
+          rc.add(weightedSample());
+       }
+       return rc;
+    }
     public void cull(double replaceFraction) {
         synchronized (particles) {
             Collections.sort(particles, Pixie.compareScores);
+            Collections.reverse(particles);
         }
         int start = (int)(particles.size() * (1 - replaceFraction));
+        int numToReplace = particles.size() - start;
+        List<Pixie> newGuys = weightedSamples(numToReplace);
         for (int i = start; i < particles.size(); ++i) {
             Pixie p = particles.get(i);
             if (p == best) {
                 throw new RuntimeException("Culling best: " + p);
             }
-            p.pose = world.randomPose();
+            p.pose = newGuys.get(i - start).pose;
         }
     }
 
@@ -103,18 +123,25 @@ public class ParticleFilter {
         }
     }
     public void scoreAgainst(List<Double> measurement) {
-        double bestScore = Double.POSITIVE_INFINITY;
+        double bestScore = 0;
+        double t = 0;
         for (Pixie p: particles) {
             List<Double> sample = world.ranges(p.pose, Pixie.sensorAngles);
             p.score = Main.distance(measurement, sample);
-            if (p.score < bestScore) {
+            p.score = Math.exp(-p.score);
+            System.out.println("score: " + p.score);
+            t += p.score;
+            if (p.score > bestScore) {
                 bestScore = p.score;
                 best = p;
             }
         }
-        
+        for (Pixie p: particles) {
+           p.score = p.score/t;
+        }
         synchronized (particles) {
             Collections.sort(particles, Pixie.compareScores);
+            Collections.reverse(particles);
         }
         System.out.println(particles);
     }
