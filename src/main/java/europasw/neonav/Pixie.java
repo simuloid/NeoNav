@@ -21,12 +21,25 @@ public class Pixie {
    static Double[] sensorAngles = { 0.0, Math.toRadians(180) };
    
    static {
-       int n = 6;
+       int n = 30;
        sensorAngles = new Double[n];
        double da = 360.0 / n;
        for (int i = 0; i < n; ++i) {
            sensorAngles[i] = i * da;
        }
+   }
+
+   Pixie() {
+   }
+   Pixie(Pixie p) {
+      this.pose = new Pose(p.pose);
+      this.score = p.score;
+   }
+   Pixie(Pose pose) {
+      double vx = Math.random() * 2 - 1;
+      double vy = Math.random() * 2 - 1;
+      double va = Math.random() * 2 - 1;
+      this.pose = new Pose(pose.x + vx, pose.y + vy, pose.heading + va);
    }
    @Override
    public String toString() {

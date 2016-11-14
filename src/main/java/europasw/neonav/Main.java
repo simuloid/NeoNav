@@ -34,7 +34,7 @@ public class Main {
         
         
         
-        ParticleFilter filter = new ParticleFilter(5, w);
+        ParticleFilter filter = new ParticleFilter(500, w);
         
         
         Pose mystery = w.randomPose();
@@ -44,7 +44,7 @@ public class Main {
         f.getContentPane().setLayout(new BorderLayout());
         f.getContentPane().add(new FilterView(filter), BorderLayout.CENTER);
         f.setVisible(true);
-        for (int i = 0; i < 500; ++i) {
+        for (int i = 0; i < 10; ++i) {
             f.repaint();
             List<Double> scan = w.ranges(mystery, Pixie.sensorAngles);            
             filter.scoreAgainst(scan);
@@ -54,14 +54,36 @@ public class Main {
             filter.improve(0.01);
             //filter.shake(0.000001);
             try {
-                Thread.sleep(20L);
-            } catch (InterruptedException ex) {
+//                Thread.sleep(10L);
+            } catch (Exception ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
-//            mystery.rotate(2f);
-//            filter.rotate(2f);
+            if (Math.random() < 0.5) {
+               float turn = (float) (Math.random() * 6 - 3);
+               mystery.rotate(turn);
+               filter.rotate(turn);
+            }
+            else {
+               // Amount of movement
+               double distance = Math.random() * 5 - 1;
+               mystery.forward(distance);
+               if (mystery.x < 0 || mystery.x >= w.width || mystery.y < 0 || mystery.y >= w.height) {
+                  mystery.forward(-distance);
+               }
+               else {
+                  filter.move(distance);
+               }
+            }
         }
+      List<Double> scan = w.ranges(mystery, Pixie.sensorAngles);            
+      filter.scoreAgainst(scan);
+
         System.out.println("Revealed: " + mystery + " scores: " + w.ranges(mystery, Pixie.sensorAngles));
-        System.out.println("Best guess: " + filter.best + " scores: " + w.ranges(filter.best.pose, Pixie.sensorAngles));
+      Pixie best = filter.best;
+      System.out.println("best: " + best);
+        System.out.println("Best guess: " + best + " scores: " + w.ranges(best.pose, Pixie.sensorAngles));
+        Pose avg = filter.getAveragePose();
+      System.out.println("avg: " + avg);
+        System.out.println("Avg scores: " + w.ranges(avg, Pixie.sensorAngles));
     }
 }

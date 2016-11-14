@@ -84,7 +84,7 @@ public class World {
                return r;
             }
          }
-         r += 0.01;
+         r += 0.1;
       } while (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height);
       
       return r;

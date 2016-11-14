@@ -78,20 +78,28 @@ public class ParticleFilter {
        }
        return rc;
     }
-    public void cull(double replaceFraction) {
+    public void resample(double replaceFraction) {
         synchronized (particles) {
             Collections.sort(particles, Pixie.compareScores);
             Collections.reverse(particles);
         }
-        int start = (int)(particles.size() * (1 - replaceFraction));
-        int numToReplace = particles.size() - start;
-        List<Pixie> newGuys = weightedSamples(numToReplace);
-        for (int i = start; i < particles.size(); ++i) {
-            Pixie p = particles.get(i);
-            if (p == best) {
-                throw new RuntimeException("Culling best: " + p);
-            }
-            p.pose = newGuys.get(i - start).pose;
+        int numToReplace = (int)(particles.size() * replaceFraction);
+        System.out.println("NumToReplace: " + numToReplace);
+        List<Pixie> newGuys = new ArrayList<>(particles.size());
+        for (int i = 0; i < particles.size(); ++i) {
+           Pixie p = null;
+           if (i < numToReplace) {
+              p = new Pixie(this.weightedSample().pose);
+//              p = new Pixie(world.randomPose());
+           }
+           else {
+              p = new Pixie(particles.get(i));
+           }
+           newGuys.add(p);
+        }
+        synchronized (particles) {
+           particles.clear();
+           particles.addAll(newGuys);
         }
     }
 
@@ -111,9 +119,25 @@ public class ParticleFilter {
         improve(0.01);
     }
 
+    public Pose getAveragePose() {
+       double x = 0;
+       double y = 0;
+       double dx = 0;
+       double dy = 0;
+       for (Pixie p: particles) {
+          x += p.pose.x;
+          y += p.pose.y;
+          dx += Math.cos(p.pose.heading);
+          dy += Math.sin(p.pose.heading);
+       }
+       x /= particles.size();
+       y /= particles.size();
+       double a = Math.atan2(dy/particles.size(), dx/particles.size());
+       return new Pose(x, y, a);
+    }
     // Nudge everybody toward best
     public void improve(double fraction) {
-        cull(0.1);
+        resample(1.0);
         for (Pixie p: particles) {
             p.pose.updateToward(best.pose, fraction*0.1);
             Pixie b = localBest(p);
@@ -127,9 +151,9 @@ public class ParticleFilter {
         double t = 0;
         for (Pixie p: particles) {
             List<Double> sample = world.ranges(p.pose, Pixie.sensorAngles);
-            p.score = Main.distance(measurement, sample);
+            p.score = Main.distance(sample, measurement);
             p.score = Math.exp(-p.score);
-            System.out.println("score: " + p.score);
+            //System.out.println("score: " + p.score);
             t += p.score;
             if (p.score > bestScore) {
                 bestScore = p.score;
