@@ -9,6 +9,7 @@ package europasw.neonav;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  *
@@ -16,6 +17,7 @@ import java.util.Objects;
  */
 public class Pixie {
    Pose pose;
+   static Random dice = new Random();
    double score;
 //   static Double[] sensorAngles = { Math.toRadians(60), 0.0, Math.toRadians(-60) };
    static Double[] sensorAngles = { 0.0, Math.toRadians(180) };
@@ -36,9 +38,9 @@ public class Pixie {
       this.score = p.score;
    }
    Pixie(Pose pose) {
-      double vx = Math.random() * 2 - 1;
-      double vy = Math.random() * 2 - 1;
-      double va = Math.random() * 2 - 1;
+      double vx = dice.nextGaussian();
+      double vy = dice.nextGaussian();
+      double va = 0.1 * dice.nextGaussian();
       this.pose = new Pose(pose.x + vx, pose.y + vy, pose.heading + va);
    }
    @Override

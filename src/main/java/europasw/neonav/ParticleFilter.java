@@ -78,7 +78,7 @@ public class ParticleFilter {
        }
        return rc;
     }
-    public void resample(double replaceFraction) {
+    public void resample2(double replaceFraction) {
         synchronized (particles) {
             Collections.sort(particles, Pixie.compareScores);
             Collections.reverse(particles);
@@ -86,14 +86,44 @@ public class ParticleFilter {
         int numToReplace = (int)(particles.size() * replaceFraction);
         System.out.println("NumToReplace: " + numToReplace);
         List<Pixie> newGuys = new ArrayList<>(particles.size());
+
         for (int i = 0; i < particles.size(); ++i) {
            Pixie p = null;
            if (i < numToReplace) {
-              p = new Pixie(this.weightedSample().pose);
-//              p = new Pixie(world.randomPose());
+               p = new Pixie(world.randomPose());
            }
            else {
-              p = new Pixie(particles.get(i));
+              p = new Pixie(this.weightedSample().pose);
+//              p = new Pixie(particles.get(i));
+           }
+           newGuys.add(p);
+        }
+        synchronized (particles) {
+           particles.clear();
+           particles.addAll(newGuys);
+        }
+    }
+
+    public void resample(double replaceFraction) {
+        synchronized (particles) {
+            Collections.sort(particles, Pixie.compareScores);
+            Collections.reverse(particles);
+        }
+        int numToReplace = (int)(particles.size() * replaceFraction);
+        int start = particles.size() - numToReplace;
+        System.out.println("NumToReplace: " + numToReplace);
+        List<Pixie> newGuys = new ArrayList<>(particles.size());
+        for (int i = 0; i < start; ++i) {
+            newGuys.add(particles.get(i));
+        }
+        for (int i = start; i < particles.size(); ++i) {
+           Pixie p = null;
+           if (Math.random() < replaceFraction) {
+               p = new Pixie(world.randomPose());
+           }
+           else {
+              p = new Pixie(this.weightedSample().pose);
+//              p = new Pixie(particles.get(i));
            }
            newGuys.add(p);
         }
@@ -115,10 +145,6 @@ public class ParticleFilter {
         return best;
     }
     
-    public void improve() {
-        improve(0.01);
-    }
-
     public Pose getAveragePose() {
        double x = 0;
        double y = 0;
@@ -136,8 +162,9 @@ public class ParticleFilter {
        return new Pose(x, y, a);
     }
     // Nudge everybody toward best
-    public void improve(double fraction) {
-        resample(1.0);
+    public void improve(double fraction, double replaceFraction, List<Double> scan) {
+        scoreAgainst(scan);
+        resample(replaceFraction);
         for (Pixie p: particles) {
             p.pose.updateToward(best.pose, fraction*0.1);
             Pixie b = localBest(p);
@@ -146,14 +173,19 @@ public class ParticleFilter {
             }
         }
     }
+    public double scoreAgainst(Pose p, List<Double> measurement) {
+        List<Double> sample = world.ranges(p, Pixie.sensorAngles);
+        double score = Main.distance(sample, measurement);
+        score = Math.exp(-score);
+        return score;
+    }
+    
     public void scoreAgainst(List<Double> measurement) {
         double bestScore = 0;
         double t = 0;
         for (Pixie p: particles) {
-            List<Double> sample = world.ranges(p.pose, Pixie.sensorAngles);
-            p.score = Main.distance(sample, measurement);
-            p.score = Math.exp(-p.score);
             //System.out.println("score: " + p.score);
+            p.score = scoreAgainst(p.pose, measurement);
             t += p.score;
             if (p.score > bestScore) {
                 bestScore = p.score;
@@ -165,7 +197,7 @@ public class ParticleFilter {
         }
         synchronized (particles) {
             Collections.sort(particles, Pixie.compareScores);
-            Collections.reverse(particles);
+            //Collections.reverse(particles);
         }
         System.out.println(particles);
     }

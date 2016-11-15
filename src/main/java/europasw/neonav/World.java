@@ -31,18 +31,19 @@ public class World {
         this.height = height;
     }
     
+    public boolean isValidPose(Pose p) {
+        if (p == null) return false;
+        for (Shape s: objects) {
+            if (s.contains(p.x, p.y)) return false;
+        }
+        if (p.x < 0 || p.y < 0 || p.x >= width || p.y >= height) return false;
+        return true;
+    }
     public Pose randomPose() {
         boolean good = false;
         Pose p = null;
-        while (!good) {
+        while (!isValidPose(p)) {
             p = new Pose(dice.nextDouble()*width, dice.nextDouble()*height,2*dice.nextDouble()*Math.PI - Math.PI);
-            good = true;
-            for (Shape s: objects) {
-                if (s.contains(p.x, p.y)) {
-                    good = false;
-                    break;
-                }
-            }
         }
 //       p.dx = (dice.nextDouble()*2 - 1)*width*0.001;
 //       p.dy = (dice.nextDouble()*2 - 1)*height*0.001;
@@ -75,6 +76,7 @@ public class World {
     private double rangeToObject(double x, double y, double angle) {
 //        System.out.format("Returning range to nearest from %.2f, %.2f heading %.1f\n", x, y, Math.toDegrees(angle));
       double r = 0;
+      double maxRange = 160;
       Pose p;
       do {
          p = new Pose(x, y, angle);
@@ -85,8 +87,10 @@ public class World {
             }
          }
          r += 0.1;
-      } while (p.x >= 0 && p.x < width && p.y >= 0 && p.y < height);
-      
+      } while (r < maxRange && p.x >= 0 && p.x < width && p.y >= 0 && p.y < height);
+      if (r >= maxRange) {
+          r = maxRange;
+      }
       return r;
     }
     
