@@ -59,28 +59,8 @@ public class FilterView extends JComponent {
                     drawPixie(g2, p, Color.GREEN, Color.BLUE);
                 }
                 else {
-                    drawPixie(g2, p, p.old ? Color.BLACK : Color.MAGENTA, Color.BLUE);
-                }
-            }
-        }
-    }
-    public void paint2(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        double scaleX = 1.0 * getWidth() / filter.world.width;
-        double scaleY = 1.0 * getHeight() / filter.world.height;
-        g2.setTransform(AffineTransform.getScaleInstance(scaleX, scaleY));
-        g2.setStroke(new BasicStroke(0.001f));
-        g2.setColor(Color.RED);
-        for (Shape s: filter.world.objects) {
-            g2.draw(s);
-        }
-        synchronized (filter.particles) {
-            for (Pixie p: filter.particles) {
-                if (p == filter.best) {
-                    drawPixie(g2, p, Color.GREEN, Color.BLUE);
-                }
-                else {
-                    drawPixie(g2, p, !p.old ? Color.BLACK : Color.MAGENTA, Color.BLUE);
+                    Color ageColor = Color.getHSBColor(p.age / 20f, 1f, 1f);
+                    drawPixie(g2, p, ageColor, Color.BLUE);
                 }
             }
         }

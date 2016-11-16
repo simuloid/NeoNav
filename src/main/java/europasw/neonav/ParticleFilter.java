@@ -115,7 +115,7 @@ public class ParticleFilter {
         List<Pixie> newGuys = new ArrayList<>(particles.size());
         for (int i = 0; i < start; ++i) {
             Pixie p = particles.get(i);
-            p.old = true;
+            ++p.age;
             newGuys.add(p);
         }
         for (int i = start; i < particles.size(); ++i) {
