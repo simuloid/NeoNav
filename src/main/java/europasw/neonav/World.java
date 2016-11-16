@@ -73,6 +73,13 @@ public class World {
         return values;
     }
 
+    public List<Double> fractionalError(List<Double> errors) {
+        List<Double> fe = new ArrayList<>(errors.size());
+        fe.add(errors.get(0)/width);
+        fe.add(errors.get(1)/height);
+        fe.add(errors.get(2)/(2*Math.PI));
+        return fe;
+    }
     private double rangeToObject(double x, double y, double angle) {
 //        System.out.format("Returning range to nearest from %.2f, %.2f heading %.1f\n", x, y, Math.toDegrees(angle));
       double r = 0;
