@@ -54,7 +54,7 @@ public class Main {
         do {
             List<Double> scan = w.ranges(mystery, Pixie.sensorAngles);            
             
-            filter.improve(0.01, 0.8, 0.1, scan);
+            filter.improve(0.01, 0.8, 0.5, scan);
             
             bestScore = filter.scoreAgainst(filter.best.pose, scan);
             if (bestScore > goodEnough) {
