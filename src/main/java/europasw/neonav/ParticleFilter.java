@@ -104,7 +104,7 @@ public class ParticleFilter {
         }
     }
 
-    public void resample(double replaceFraction) {
+    public void resample(double replaceFraction, double brandNewFraction) {
         synchronized (particles) {
             Collections.sort(particles, Pixie.compareScores);
             Collections.reverse(particles);
@@ -114,11 +114,13 @@ public class ParticleFilter {
         System.out.println("NumToReplace: " + numToReplace);
         List<Pixie> newGuys = new ArrayList<>(particles.size());
         for (int i = 0; i < start; ++i) {
-            newGuys.add(particles.get(i));
+            Pixie p = particles.get(i);
+            p.old = true;
+            newGuys.add(p);
         }
         for (int i = start; i < particles.size(); ++i) {
            Pixie p = null;
-           if (Math.random() < replaceFraction) {
+           if (Math.random() < brandNewFraction) {
                p = new Pixie(world.randomPose());
            }
            else {
@@ -145,26 +147,40 @@ public class ParticleFilter {
         return best;
     }
     
+    Pose localAverage(Pose center, double radius) {
+        List<Pixie> local = new ArrayList<>();
+        for (Pixie p: particles) {
+            if (center.distance(p.pose) < radius) {
+                local.add(p);
+            }
+        }
+        return getAveragePose(local);
+    }
+    
     public Pose getAveragePose() {
+        return getAveragePose(particles);
+    }
+    
+    public Pose getAveragePose(List<Pixie> guys) {
        double x = 0;
        double y = 0;
        double dx = 0;
        double dy = 0;
-       for (Pixie p: particles) {
+       for (Pixie p: guys) {
           x += p.pose.x;
           y += p.pose.y;
           dx += Math.cos(p.pose.heading);
           dy += Math.sin(p.pose.heading);
        }
-       x /= particles.size();
-       y /= particles.size();
-       double a = Math.atan2(dy/particles.size(), dx/particles.size());
+       x /= guys.size();
+       y /= guys.size();
+       double a = Math.atan2(dy/guys.size(), dx/guys.size());
        return new Pose(x, y, a);
     }
     // Nudge everybody toward best
-    public void improve(double fraction, double replaceFraction, List<Double> scan) {
+    public void improve(double fraction, double replaceFraction, double brandNewFraction, List<Double> scan) {
         scoreAgainst(scan);
-        resample(replaceFraction);
+        resample(replaceFraction, brandNewFraction);
         for (Pixie p: particles) {
             p.pose.updateToward(best.pose, fraction*0.1);
             Pixie b = localBest(p);
