@@ -19,6 +19,7 @@ public class Pixie {
    Pose pose;
    static Random dice = new Random();
    double score;
+   boolean old = false;
 //   static Double[] sensorAngles = { Math.toRadians(60), 0.0, Math.toRadians(-60) };
    static Double[] sensorAngles = { 0.0, Math.toRadians(180) };
    
@@ -40,7 +41,7 @@ public class Pixie {
    Pixie(Pose pose) {
       double vx = dice.nextGaussian();
       double vy = dice.nextGaussian();
-      double va = 0.1 * dice.nextGaussian();
+      double va = dice.nextGaussian();
       this.pose = new Pose(pose.x + vx, pose.y + vy, pose.heading + va);
    }
    @Override
