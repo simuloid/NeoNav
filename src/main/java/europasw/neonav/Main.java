@@ -49,7 +49,7 @@ public class Main {
         f.getContentPane().add(new FilterView(filter), BorderLayout.CENTER);
         f.setVisible(true);
         double bestScore = 0;
-        double goodEnough = 0.3;
+        double goodEnough = 0.36;
         int ic = 0;
         do {
             List<Double> scan = w.ranges(mystery, Pixie.sensorAngles);            

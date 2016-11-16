@@ -24,7 +24,7 @@ public class Pixie {
    static Double[] sensorAngles = { 0.0, Math.toRadians(180) };
    
    static {
-       int n = 30;
+       int n = 36;
        sensorAngles = new Double[n];
        double da = 360.0 / n;
        for (int i = 0; i < n; ++i) {
