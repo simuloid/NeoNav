@@ -59,7 +59,7 @@ public class FilterView extends JComponent {
                     drawPixie(g2, p, Color.GREEN, Color.BLUE);
                 }
                 else {
-                    drawPixie(g2, p, Color.BLACK, Color.BLUE);
+                    drawPixie(g2, p, p.old ? Color.BLACK : Color.MAGENTA, Color.BLUE);
                 }
             }
         }
@@ -80,7 +80,7 @@ public class FilterView extends JComponent {
                     drawPixie(g2, p, Color.GREEN, Color.BLUE);
                 }
                 else {
-                    drawPixie(g2, p, Color.BLACK, Color.BLUE);
+                    drawPixie(g2, p, !p.old ? Color.BLACK : Color.MAGENTA, Color.BLUE);
                 }
             }
         }
